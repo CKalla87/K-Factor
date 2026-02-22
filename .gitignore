@@ -59,6 +59,10 @@ dkms.conf
 .DS_Store
 Thumbs.db
 
+# Node dependencies
+node_modules/
+Resources/Design-KFACTOR/node_modules/
+
 # JUCE specific
 JuceLibraryCode/BinaryData.cpp
 JuceLibraryCode/BinaryData.h

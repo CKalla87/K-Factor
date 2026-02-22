@@ -61,37 +61,70 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
 
-    // Compressor parameters
-    std::atomic<float>* thresholdParam = nullptr;
-    std::atomic<float>* ratioParam = nullptr;
-    std::atomic<float>* attackParam = nullptr;
-    std::atomic<float>* releaseParam = nullptr;
-    std::atomic<float>* makeupGainParam = nullptr;
+    enum class MeterMode
+    {
+        input = 0,
+        gainReduction = 1,
+        output = 2
+    };
 
-    // Gain reduction meter value (for UI)
-    float getCurrentGainReduction() const { return currentGainReduction.load(); }
+    enum class AgcMode
+    {
+        leftRight = 0,
+        latVert = 1
+    };
+
+    // Fairchild-style control parameters
+    std::atomic<float>* inputGainLeftParam = nullptr;
+    std::atomic<float>* inputGainRightParam = nullptr;
+    std::atomic<float>* thresholdLeftParam = nullptr;
+    std::atomic<float>* thresholdRightParam = nullptr;
+    std::atomic<float>* timeConstantLeftParam = nullptr;
+    std::atomic<float>* timeConstantRightParam = nullptr;
+    std::atomic<float>* meterModeLeftParam = nullptr;
+    std::atomic<float>* meterModeRightParam = nullptr;
+    std::atomic<float>* agcModeParam = nullptr;
+    std::atomic<float>* powerParam = nullptr;
+
+    // Metering accessors
+    float getMeterInputLeft() const { return meterInputLeft.load(); }
+    float getMeterInputRight() const { return meterInputRight.load(); }
+    float getMeterOutputLeft() const { return meterOutputLeft.load(); }
+    float getMeterOutputRight() const { return meterOutputRight.load(); }
+    float getMeterGainReductionLeft() const { return meterGainReductionLeft.load(); }
+    float getMeterGainReductionRight() const { return meterGainReductionRight.load(); }
 
 private:
     //==============================================================================
-    // DSP processing
-    juce::dsp::Compressor<float> compressor;
-    juce::dsp::Gain<float> makeupGain;
-    
-    void updateParameters();
-    
-    double currentSampleRate = 44100.0;
-    std::atomic<float> currentGainReduction{0.0f};
+    struct ChannelState
+    {
+        float envelope = 0.0f;
+        float releaseFast = 0.0f;
+        float releaseSlow = 0.0f;
+        float lastGainReductionDb = 0.0f;
+    };
 
-    // Cached parameter values to avoid unnecessary updates
-    float cachedThreshold = -12.0f;
-    float cachedRatio = 4.0f;
-    float cachedAttack = 0.8f;
-    float cachedRelease = 100.0f;
-    float cachedMakeupGain = 0.0f;
-    
-    // Counter to reduce parameter update frequency
-    int parameterUpdateCounter = 0;
-    static constexpr int parameterUpdateInterval = 4; // Update every 4 blocks
+    ChannelState channelStates[2];
+
+    float getTimeConstantAttackMs (int timeConstant) const;
+    float getTimeConstantReleaseMs (int timeConstant, float gainReductionDb) const;
+    float computeGainReductionDb (float levelDb, float thresholdDb) const;
+    struct ReleaseCoefficients
+    {
+        float fastCoeff = 0.0f;
+        float slowCoeff = 0.0f;
+        float mix = 1.0f;
+        bool dualStage = false;
+    };
+    ReleaseCoefficients getReleaseCoefficients (int timeConstant, float gainReductionDb) const;
+
+    double currentSampleRate = 44100.0;
+    std::atomic<float> meterInputLeft{0.0f};
+    std::atomic<float> meterInputRight{0.0f};
+    std::atomic<float> meterOutputLeft{0.0f};
+    std::atomic<float> meterOutputRight{0.0f};
+    std::atomic<float> meterGainReductionLeft{0.0f};
+    std::atomic<float> meterGainReductionRight{0.0f};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KFactorAudioProcessor)
 };

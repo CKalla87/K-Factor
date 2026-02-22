@@ -8,6 +8,9 @@
               pluginAAXCategory="2">
   <MAINGROUP id="jXVMvd" name="K-Factor">
     <GROUP id="{9599FCC3-1EB7-A668-23ED-93BE4AF42C8A}" name="Source">
+      <FILE id="y2Xb4F" name="Assets.cpp" compile="1" resource="0" file="Source/Assets.cpp"/>
+      <FILE id="n6Qj2E" name="Assets.h" compile="0" resource="0" file="Source/Assets.h"/>
+      <FILE id="t7y6eK" name="LayoutConstants.h" compile="0" resource="0" file="Source/LayoutConstants.h"/>
       <FILE id="gYswd1" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="L35aMz" name="PluginProcessor.h" compile="0" resource="0"
