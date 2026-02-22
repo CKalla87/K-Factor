@@ -40,3 +40,7 @@ A fast-attack FET-style compressor plugin with a dark, spooky aesthetic and colo
 - Colorful Sound Toys-inspired UI with dark spooky theme
 
 Enjoy the compression! 🎃
+
+## License
+
+Copyright 2025 CK Audio Design
