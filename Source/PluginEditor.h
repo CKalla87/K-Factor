@@ -31,6 +31,9 @@ private:
     class MeterSwitchSlider : public SteppedSlider
     {
     public:
+        void setDrawDetentMarks (bool shouldDraw) noexcept { drawDetentMarks = shouldDraw; }
+        bool getDrawDetentMarks() const noexcept { return drawDetentMarks; }
+
         void setDetentAngles (std::vector<float> anglesRadians)
         {
             detentAngles = std::move (anglesRadians);
@@ -66,6 +69,7 @@ private:
 
     private:
         std::vector<float> detentAngles;
+        bool drawDetentMarks = true;
     };
 
     class SpriteToggleButton : public juce::ToggleButton
@@ -161,8 +165,8 @@ private:
     juce::Slider timeConstantRightSlider;
     MeterSwitchSlider meterModeLeftSlider;
     MeterSwitchSlider meterModeRightSlider;
+    MeterSwitchSlider agcSlider;
 
-    SpriteToggleButton agcToggle { KFactorAssets::getToggleSpriteImage() };
     PowerToggleButton powerToggle { KFactorAssets::getPowerToggleBaseImage(),
                                     KFactorAssets::getPowerToggleTipImage() };
 
@@ -181,7 +185,7 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> timeConstantRightAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> meterModeLeftAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> meterModeRightAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> agcAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> agcAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> powerAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KFactorAudioProcessorEditor)

@@ -10,8 +10,13 @@ const std::vector<double> kInputGainSteps { 0.0, 0.6, 1.2, 2.0, 3.0, 4.0, 6.0, 8
 constexpr float kMeterSwitchAngleIn = juce::degreesToRadians (241.5f);
 constexpr float kMeterSwitchAngleGr = juce::degreesToRadians (266.75f);
 constexpr float kMeterSwitchAngleOut = juce::degreesToRadians (296.0f);
+// AGC 2-position switch: LEFT RIGHT (0) and LAT VERT (1) - shortened angle to align with L-shaped tick marks
+constexpr float kAgcAngleLeft = juce::degreesToRadians (263.5f);
+constexpr float kAgcAngleRight = juce::degreesToRadians (282.0f);
 constexpr float kMeterSwitchDetentSpacing = kMeterSwitchAngleGr - kMeterSwitchAngleIn;
-constexpr float kMeterSwitchPointerOffset = juce::MathConstants<float>::halfPi - kMeterSwitchDetentSpacing;
+// Offset to align knob pointer with tick marks; tweaked so pointer points directly at detent
+constexpr float kMeterSwitchPointerOffset = juce::MathConstants<float>::halfPi - kMeterSwitchDetentSpacing
+                                          - juce::degreesToRadians (8.0f);
 constexpr float kLargeKnobPointerOffset = juce::MathConstants<float>::halfPi;
 
 float valueToAngle (juce::Slider& slider, float startAngle, float endAngle, double value)
@@ -285,9 +290,9 @@ void KFactorAudioProcessorEditor::ImageKnobLookAndFeel::drawRotarySlider (juce::
             angle = detentAngle;
 
         const auto& detents = meterSwitch->getDetentAngles();
-        if (! detents.empty())
+        if (meterSwitch->getDrawDetentMarks() && ! detents.empty())
         {
-            g.setColour (juce::Colours::white.withAlpha (0.65f));
+            g.setColour (juce::Colours::white);
             drawKnobWithAngles (g, drawBounds, detents);
         }
     }
@@ -647,8 +652,7 @@ KFactorAudioProcessorEditor::KFactorAudioProcessorEditor (KFactorAudioProcessor&
         backgroundImage = backgroundImage.createCopy();
         scrubVuBackgroundPatch (backgroundImage, LayoutConstants::kVUMeterLeftBounds);
         scrubVuBackgroundPatch (backgroundImage, LayoutConstants::kVUMeterRightBounds);
-        scrubKnobBackgroundPatch (backgroundImage, LayoutConstants::kMeterSwitchLeftBounds);
-        scrubKnobBackgroundPatch (backgroundImage, LayoutConstants::kMeterSwitchRightBounds);
+        // Left vert metering, right vert metering, and AGC: do not scrub (removes visible circles)
         scrubKnobBackgroundPatch (backgroundImage, LayoutConstants::kInputGainLeftBounds);
         scrubKnobBackgroundPatch (backgroundImage, LayoutConstants::kInputGainRightBounds);
         scrubKnobBackgroundPatch (backgroundImage, LayoutConstants::kThresholdLeftBounds);
@@ -683,12 +687,21 @@ KFactorAudioProcessorEditor::KFactorAudioProcessorEditor (KFactorAudioProcessor&
 
     configureMeterSwitchSlider (meterModeLeftSlider, smallKnobLookAndFeel);
     configureMeterSwitchSlider (meterModeRightSlider, smallKnobLookAndFeel);
+    meterModeLeftSlider.setDrawDetentMarks (false);
+    meterModeRightSlider.setDrawDetentMarks (false);
     const std::vector<double> meterModeSteps { 0.0, 1.0, 2.0 };
     meterModeLeftSlider.setAllowedValues (meterModeSteps);
     meterModeRightSlider.setAllowedValues (meterModeSteps);
     const std::vector<float> meterModeAngles { kMeterSwitchAngleIn, kMeterSwitchAngleGr, kMeterSwitchAngleOut };
     meterModeLeftSlider.setDetentAngles (meterModeAngles);
     meterModeRightSlider.setDetentAngles (meterModeAngles);
+
+    configureMeterSwitchSlider (agcSlider, smallKnobLookAndFeel);
+    agcSlider.setDrawDetentMarks (false);
+    const std::vector<double> agcSteps { 0.0, 1.0 };
+    agcSlider.setAllowedValues (agcSteps);
+    const std::vector<float> agcAngles { kAgcAngleLeft, kAgcAngleRight };
+    agcSlider.setDetentAngles (agcAngles);
 
     auto configureTextLabel = [] (juce::Label& label, const juce::String& text)
     {
@@ -703,7 +716,7 @@ KFactorAudioProcessorEditor::KFactorAudioProcessorEditor (KFactorAudioProcessor&
     configureTextLabel (fuseRatingLabel, "5A");
 
 
-    addAndMakeVisible (agcToggle);
+    addAndMakeVisible (agcSlider);
     addAndMakeVisible (powerToggle);
     addAndMakeVisible (powerLed);
     addAndMakeVisible (fuseButton);
@@ -728,8 +741,8 @@ KFactorAudioProcessorEditor::KFactorAudioProcessorEditor (KFactorAudioProcessor&
         audioProcessor.apvts, "METER_MODE_L", meterModeLeftSlider);
     meterModeRightAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         audioProcessor.apvts, "METER_MODE_R", meterModeRightSlider);
-    agcAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
-        audioProcessor.apvts, "AGC_MODE", agcToggle);
+    agcAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        audioProcessor.apvts, "AGC_MODE", agcSlider);
     powerAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         audioProcessor.apvts, "POWER", powerToggle);
 
@@ -746,6 +759,7 @@ KFactorAudioProcessorEditor::~KFactorAudioProcessorEditor()
     timeConstantRightSlider.setLookAndFeel (nullptr);
     meterModeLeftSlider.setLookAndFeel (nullptr);
     meterModeRightSlider.setLookAndFeel (nullptr);
+    agcSlider.setLookAndFeel (nullptr);
 }
 
 void KFactorAudioProcessorEditor::paint (juce::Graphics& g)
@@ -788,7 +802,7 @@ void KFactorAudioProcessorEditor::resized()
     vuMeterLeft.setBounds (LayoutConstants::kVUMeterLeftBounds);
     vuMeterRight.setBounds (LayoutConstants::kVUMeterRightBounds);
 
-    agcToggle.setBounds (LayoutConstants::kAgcToggleBounds);
+    agcSlider.setBounds (LayoutConstants::kAgcToggleBounds);
 }
 
 void KFactorAudioProcessorEditor::timerCallback()
