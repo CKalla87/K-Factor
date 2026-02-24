@@ -159,10 +159,10 @@ private:
 
     SteppedSlider inputGainLeftSlider;
     SteppedSlider inputGainRightSlider;
-    juce::Slider thresholdLeftSlider;
-    juce::Slider thresholdRightSlider;
-    juce::Slider timeConstantLeftSlider;
-    juce::Slider timeConstantRightSlider;
+    SteppedSlider thresholdLeftSlider;
+    SteppedSlider thresholdRightSlider;
+    SteppedSlider timeConstantLeftSlider;
+    SteppedSlider timeConstantRightSlider;
     MeterSwitchSlider meterModeLeftSlider;
     MeterSwitchSlider meterModeRightSlider;
     MeterSwitchSlider agcSlider;

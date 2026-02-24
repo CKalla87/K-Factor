@@ -355,8 +355,8 @@ float KFactorAudioProcessor::getTimeConstantAttackMs (int timeConstant) const
         case 2: return 0.2f;
         case 3: return 0.4f;
         case 4: return 0.4f;
-        case 5: return 0.2f;
-        case 6: return 0.2f;
+        case 5: return 0.4f;
+        case 6: return 0.4f;
         default: return 0.2f;
     }
 }

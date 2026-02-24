@@ -680,10 +680,18 @@ KFactorAudioProcessorEditor::KFactorAudioProcessorEditor (KFactorAudioProcessor&
     inputGainRightSlider.setAllowedValues (kInputGainSteps);
     inputGainLeftSlider.setDrawMarkers (false);
     inputGainRightSlider.setDrawMarkers (false);
-    thresholdLeftSlider.setRange (1.0, 6.0, 1.0);
-    thresholdRightSlider.setRange (1.0, 6.0, 1.0);
-    timeConstantLeftSlider.setRange (1.0, 6.0, 1.0);
-    timeConstantRightSlider.setRange (1.0, 6.0, 1.0);
+
+    // Fairchild 670: 6-position threshold and time constant knobs (positions 1-6)
+    const std::vector<double> kThresholdSteps { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
+    const std::vector<double> kTimeConstantSteps { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
+    thresholdLeftSlider.setAllowedValues (kThresholdSteps);
+    thresholdRightSlider.setAllowedValues (kThresholdSteps);
+    timeConstantLeftSlider.setAllowedValues (kTimeConstantSteps);
+    timeConstantRightSlider.setAllowedValues (kTimeConstantSteps);
+    thresholdLeftSlider.setDrawMarkers (true);
+    thresholdRightSlider.setDrawMarkers (true);
+    timeConstantLeftSlider.setDrawMarkers (true);
+    timeConstantRightSlider.setDrawMarkers (true);
 
     configureMeterSwitchSlider (meterModeLeftSlider, smallKnobLookAndFeel);
     configureMeterSwitchSlider (meterModeRightSlider, smallKnobLookAndFeel);
